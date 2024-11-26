@@ -1,6 +1,9 @@
 package it.unibo.mvc;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,6 +30,32 @@ public final class DrawNumberApp implements DrawNumberViewObserver {
             view.setObserver(this);
             view.start();
         }
+
+        final Configuration.Builder configurationBuilder= new Configuration.Builder();
+        try (var contents = new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream(configFile)))) {
+            for (var configLine = contents.readLine(); configLine != null; configLine = contents.readLine()) {
+                final String[] lineElements = configLine.split(":");
+                //contorllo nel file e quando incotro un min o max lo inserisco nel config Builder
+                if (lineElements.length == 2) {
+                    final int value = Integer.parseInt(lineElements[1].trim());   //salvo il valore in una strigna
+                    if(lineElements[0].contains("min")){
+                        configurationBuilder.setMin(value);
+                    } else if (lineElements[0].contains("max")) {
+                        configurationBuilder.setMax(value);
+                    } else if (lineElements[0].contains("attempts")) {
+                        configurationBuilder.setAttempts(value);
+                    }
+                } else {
+                    displayError("Errore nella letterua del file di configuarazione");
+                }
+            }
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
         this.model = new DrawNumberImpl(MIN, MAX, ATTEMPTS);
     }
 
@@ -58,6 +87,12 @@ public final class DrawNumberApp implements DrawNumberViewObserver {
          * until the last thread terminates.
          */
         System.exit(0);
+    }
+
+    private void displayError(final String message){
+        for (final DrawNumberView view: views) {
+            view.displayError(message);
+        }
     }
 
     /**
