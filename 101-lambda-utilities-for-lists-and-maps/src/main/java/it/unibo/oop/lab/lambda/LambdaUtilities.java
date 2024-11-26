@@ -1,7 +1,10 @@
 package it.unibo.oop.lab.lambda;
 
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -13,9 +16,10 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+
 /**
  * This class will contain four utility functions on lists and maps, of which the first one is provided as example.
- * 
+ *
  * All such methods take as second argument a functional interface from the Java library (java.util.function).
  * This enables calling them by using the concise lambda syntax, as it's done in the main function.
  *
@@ -24,8 +28,10 @@ import java.util.stream.IntStream;
  */
 public final class LambdaUtilities {
 
+
     private LambdaUtilities() {
     }
+
 
     /**
      * @param list
@@ -46,6 +52,7 @@ public final class LambdaUtilities {
         return l;
     }
 
+
     /**
      * @param list
      *            input list
@@ -61,8 +68,17 @@ public final class LambdaUtilities {
         /*
          * Suggestion: consider Optional.filter
          */
-        return null;
+        final List<Optional<T>> optList = new ArrayList<>();
+        list.forEach(t -> {
+            if (pre.test(t)) {
+                optList.add(Optional.of(t));
+            } else {
+                optList.add(Optional.empty());
+            }
+        });
+        return optList;
     }
+
 
     /**
      * @param list
@@ -77,11 +93,26 @@ public final class LambdaUtilities {
      *         based on the mapping done by the function
      */
     public static <R, T> Map<R, Set<T>> group(final List<T> list, final Function<T, R> op) {
-        /*
-         * Suggestion: consider Map.merge
-         */
-        return null;
+        final Map<R, Set<T>> map = new HashMap<>();
+
+
+        // Itera attraverso gli elementi della lista
+        list.forEach(t -> {
+            // Calcola la chiave per ogni elemento usando la funzione op
+            final R key = op.apply(t);
+
+
+            // Usa map.merge() per aggiungere l'elemento al Set corrispondente alla chiave
+            map.merge(key, new HashSet<>(Collections.singleton(t)), (existingSet, newSet) -> {
+                existingSet.addAll(newSet); // Unisce i Set esistenti
+                return existingSet; // Ritorna il Set aggiornato
+            });
+        });
+
+
+        return map;
     }
+
 
     /**
      * @param map
@@ -96,13 +127,20 @@ public final class LambdaUtilities {
      *         by the supplier
      */
     public static <K, V> Map<K, V> fill(final Map<K, Optional<V>> map, final Supplier<V> def) {
-        /*
-         * Suggestion: consider Optional.orElse
-         *
-         * Keep in mind that a map can be iterated through its forEach method
-         */
-        return null;
+        // Creiamo una nuova mappa che conterrà i valori non nulli o quelli forniti dal Supplier
+        final Map<K, V> mapd = new HashMap<>();
+
+
+        // Iteriamo attraverso la mappa originale
+        map.forEach((k, v) -> {
+            // Se v è presente, usiamo v.get(), altrimenti usiamo il valore di default
+            mapd.put(k, v.orElse(def.get()));
+        });
+
+
+        return mapd;
     }
+
 
     /**
      * @param args
@@ -135,3 +173,6 @@ public final class LambdaUtilities {
          */
     }
 }
+
+
+
